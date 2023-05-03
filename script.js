@@ -1,80 +1,183 @@
-class AmandaGame extends Phaser.Scene {
+class Intro extends Phaser.Scene {
     constructor(){
-        super("amandaGame")
+        super("intro");
     }
     preload(){
         this.load.path = "./assets/";
         this.load.image("gamelogo", "gamelogo.png");
-        this.load.image("studiologo", "studiologo.png");
+        this.load.image("studiologo", "pandared@2x.png");
         this.load.audio("carwoosh", "carwoosh.wav");
-        this.load.audio("backgroundaudio", "backgroundaudio.mp3")
 
     }
     create(){
-        this.graphics = this.add.graphics();
-        let bgm = this.sound.add("backgroundaudio");
+        this.scale.displaySize.setAspectRatio(config.width/config.height);
+        this.scale.refresh();
+
         let woosh = this.sound.add("carwoosh");
-        let title = this.image.add("gamelogo");
-        let logo = this.image.add("studiologo")
+        let title = this.add.image(config.width/2, config.height+100, "gamelogo").setScale(1.3);
+        let logo = this.add.image(config.width/2, config.height/2, "studiologo").setAlpha(0);
+        let start = this.add.text(config.width/2, config.height/2, "click anywhere to start");
+        start.setFontSize(40).setOrigin(0.5).setAlpha(0);
+        let play = this.add.text(config.width/2, config.height/2 + 50, "play", {
+            fontFamily: "Baloo2-Regular", 
+            fontSize: 100
+        }).setOrigin(0.5).setAlpha(0).setInteractive();
+        let quit = this.add.text(config.width/2, config.height/2 + 250, "quit", {
+            fontFamily: "Baloo2-Regular",
+            fontSize: 100
+        }).setOrigin(0.5).setAlpha(0).setInteractive();
 
-        this.graphics.fillStyle(0xff9999, 1);
-        this.graphics.fillCircle(100,100,50);
-        this.graphics.fillTriangle(250,50,200, 150, 300, 150);
-        this.graphics.fillEllipse(450,100,200,100,16);
+        const tweens_chain = this.tweens.chain({
+            tweens: [
+                {
+                    targets: logo,
+                    alpha: {from: 0, to: 1},
+                    duration: 2300,
+                    ease: "Quad.easeInOut",
+                    yoyo: true 
+                },
+                {
+                    targets: title,
+                    y: config.height/2.5,
+                    duration: 2500,
+                    ease: "Back.easeOut",
+                }, 
+                {
+                    targets: start,
+                    alpha: {from: 0.3, to: 1},
+                    duration: 1000,
+                    ease: "Quad.easeInOut",
+                    repeat: -1,
+                    yoyo: true
+                }
+            ]
+        });
 
-        this.graphics.lineStyle(5, 0x000000, 1);
-        this.graphics.lineBetween(100,100,250,100);
-        this.graphics.lineStyle(5, 0x000000, 0.5);
-        this.graphics.lineBetween(250,100,450,100);
+        this.input.once('pointerdown', ()=> {
+            tweens_chain.stop();
+            logo.setAlpha(0);
+            title.setY(config.height/2.5);
+            woosh.play();
+            this.tweens.add({
+                targets: title,
+                y: config.height/2.5 - 100,
+                ease: "Quad.easeOut"
+            });
+            this.tweens.add({
+                targets: start,
+                alpha: 0,
+                ease: "Quad.easeOut"
+            });
+            this.tweens.add({
+                targets: [play, quit],
+                alpha: 1,
+                ease: "Quad.easeOut"
+            });
+        });
 
-        this.graphics.fillGradientStyle();
-        this.graphics.fillRect(600, 50, 150, 100);
+        play.on('pointerover', ()=> {
+            play.setScale(1.1);
+        });
 
-        this.textObject = this.add.text(
-            0,
-            600,
-            "Hello world",
-            {
-                font: "40px Arial",
-                color: "#ff7000"
-            }
-        );
+        play.on('pointerout', ()=> {
+            play.setScale(1);
+        });
 
-        this.imageObject = this.add.image(
-            600,
-            300,
-            "sectionimage",
-        )
-        this.imageObject.setScale(0.2)
+        play.on('pointerdown', ()=> {
+            woosh.stop();
+            this.scene.start('loading');
+        });
 
-        this.tweens.add({
-            targets: title,
-            alpha: 0,
-            x:800,
-            y:0,
+        quit.on('pointerover', ()=> {
+            quit.setScale(1.1);
+        });
+
+        quit.on('pointerout', ()=> {
+            quit.setScale(1);
+        });
+
+        quit.on('pointerdown', ()=> {
+            woosh.stop();
+            this.scene.start('endscene');
+        });
+
+    }
+    update(){
+    }
+}
+
+class Loading extends Phaser.Scene {
+    constructor () {
+        super('loading');
+    }
+    create() {
+        this.scale.displaySize.setAspectRatio(config.width/config.height);
+        this.scale.refresh();
+
+        let margin = 55
+        let circle_1 = this.add.graphics();
+        let circle_2 = this.add.graphics();
+        let circle_3 = this.add.graphics();
+        circle_1.fillCircle(config.width-(margin*3),config.height-margin,10).fillStyle('0xfffcfd');
+        circle_2.fillCircle(config.width-(margin*2),config.height-margin,10).fillStyle('0xfffcfd');
+        circle_3.fillCircle(config.width-margin,config.height-margin,10).fillStyle('0xfffcfd');
+        this.add.text(config.width-(margin*3.7), config.height-margin, "loading", {
+            fontFamily: "Baloo2-Regular", 
+            fontSize: 100
+        }).setOrigin(1, 0.65)
+
+        this.tweens.add ({
+            targets: [circle_1, circle_2, circle_3],
+            y: -15,
             duration: 1000,
-            ease: "Linear",
-            repeat: -1
+            ease: "Quad.easeInOut",
+            yoyo: true,
+            repeat: 2,
+            delay: this.tweens.stagger(300)
         })
 
-        this.tweens.add({
-            targets: this.imageObject,
-            x:300,
-            y:300,
-            duration: 1000,
-            ease: 'Linear',
-            repeat: -1,
-        });
+        this.time.delayedCall(2600, ()=> {
+            this.cameras.main.fadeOut(2000, 51, 38, 40)
+        })
+
+        this.time.delayedCall(4600, ()=> {
+            this.scene.start('endscene')
+        })
+
     }
-    update(){}
+}
+class EndScene extends Phaser.Scene {
+    constructor() {
+        super('endscene');
+    }
+    preload() {
+        this.load.path = "./assets/";
+        this.load.audio("backgroundaudio", "backgroundaudio.mp3");
+        this.cameras.main.setBackgroundColor(0x332628)
+    }
+    create() {
+        this.sound.add("backgroundaudio", {
+            loop: true,
+            volume: 3.0
+        }).play();
+
+        this.add.text(config.width/2, config.height/2, 
+        ['Thanks for playing!',
+        'All assets and code created by Thanyared Wong.',
+        'May 2023'], {align: 'center'}
+        ).setFontSize(40).setOrigin(0.5)
+    }
 }
 
 let config = {
     type: Phaser.WEBGL,
-    width: 800,
-    height: 600,
+    width: 1920,
+    height: 1080,
+    scale: {
+        mode: Phaser.Scale.FIT
+    },
     backgroundColor: 0xffc1cc,
-    scene: [AmandaGame]
+    scene: [Intro, Loading, EndScene]
 }
 
 let game = new Phaser.Game(config);
