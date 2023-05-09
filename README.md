@@ -13,3 +13,4 @@ Requirements met:
 Additionally, I used a custom font in some of my text objects, which was loaded in my index.html file.
 
 All assets and code were created by Thanyared Wong.
+https://t-amandawong.github.io/d1/
